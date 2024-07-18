@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Check-in App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        #attendeeList {
+            list-style-type: none;
+            padding: 0;
+        }
+        .attendee {
+            background-color: #f0f0f0;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .checked-in {
+            background-color: #90EE90;
+        }
+        .check-in-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        .undo-btn {
+            background-color: #f44336;
+        }
+        .pmi-input {
+            width: 100px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Event Check-in App</h1>
+    <input type="text" id="searchInput" placeholder="Search attendees...">
+    <ul id="attendeeList"></ul>
+    <button id="downloadCSV">Download CSV</button>
+
+    <script>
+        const attendees = [
+            { name: "Aditya Rajendra Kaware", phone: "+919860566041", checkedIn: false, pmi: "" },
+            { name: "Aiswarya Surapaneni", phone: "+918897314372", checkedIn: false, pmi: "" },
+            { name: "Ajay Kumar Juluru", phone: "+919574973459", checkedIn: false, pmi: "" },
+            // Add the rest of the attendees here
+        ];
+
+        const attendeeList = document.getElementById('attendeeList');
+        const searchInput = document.getElementById('searchInput');
+
+        function renderAttendees(filteredAttendees = attendees) {
+            attendeeList.innerHTML = '';
+            filteredAttendees.forEach((attendee, index) => {
+                const li = document.createElement('li');
+                li.className = `attendee ${attendee.checkedIn ? 'checked-in' : ''}`;
+                li.innerHTML = `
+                    <strong>${attendee.name}</strong> - ${attendee.phone}
+                    <br>
+                    <input type="text" class="pmi-input" placeholder="PMI ID" value="${attendee.pmi}">
+                    <button class="check-in-btn" onclick="toggleCheckIn(${index})">${attendee.checkedIn ? 'Undo' : 'Check-in'}</button>
+                `;
+                attendeeList.appendChild(li);
+            });
+        }
+
+        function toggleCheckIn(index) {
+            attendees[index].checkedIn = !attendees[index].checkedIn;
+            attendees[index].pmi = document.querySelectorAll('.pmi-input')[index].value;
+            renderAttendees();
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredAttendees = attendees.filter(attendee => 
+                attendee.name.toLowerCase().includes(searchTerm) || 
+                attendee.phone.includes(searchTerm)
+            );
+            renderAttendees(filteredAttendees);
+        });
+
+        document.getElementById('downloadCSV').addEventListener('click', () => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Name,Phone,Checked In,PMI ID\n";
+            attendees.forEach(attendee => {
+                csvContent += `${attendee.name},${attendee.phone},${attendee.checkedIn},${attendee.pmi}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "checked_in_attendees.csv");
+            document.body.appendChild(link);
+            link.click();
+        });
+
+        renderAttendees();
+    </script>
+</body>
+</html>
